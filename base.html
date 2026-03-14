@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+
+<title>Firefly Detection</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+/* mobile responsive */
+
+@media (max-width: 900px){
+.card-grid{
+grid-template-columns:1fr 1fr;
+}
+.map-container{
+padding:25px;
+}
+.schedule-container{
+padding:30px;
+}
+.learning-container{
+padding:30px;
+}
+}
+
+/* phone */
+
+@media (max-width: 600px){
+.card-grid{
+grid-template-columns:1fr;
+gap:20px;
+}
+.feature-card{
+padding:30px;
+}
+.page-title{
+font-size:26px;
+}
+.hero{
+padding:35px;
+}
+.hero h1{
+font-size:30px;
+}
+.map-container{
+padding:20px;
+}
+#map{
+height:50vh;
+min-height:350px;
+border-radius:16px;
+}
+#miniMap{
+height:250px;
+}
+table{
+font-size:14px;
+}
+}
+
+/* Layout */
+
+body{
+margin:0;
+font-family:'Sarabun',Arial;
+background:#f5f7fb;
+color:#1a1a1a;
+display:flex;
+height:100vh;
+}
+/* Sidebar */
+
+.sidebar{
+width:230px;
+background:#ffffff;
+border-right:1px solid #e0e0e0;
+padding:30px 20px;
+box-shadow:2px 0 10px rgba(0,0,0,0.05);
+display:flex;
+flex-direction:column;
+}
+
+.sidebar h2{
+margin-top:0;
+font-size:24px;
+color:#0077cc;
+margin-bottom:40px;
+}
+
+/* menu */
+.sidebar a{
+text-decoration:none;
+color:#333;
+padding:12px 10px;
+margin-bottom:10px;
+border-radius:8px;
+font-size:18px;
+transition:0.2s;
+}
+.sidebar a:hover{
+background:#e9f4ff;
+color:#0077cc;
+}
+/* main area */
+.main{
+flex:1;
+overflow:auto;
+padding:40px;
+}
+/* container */
+.container{
+max-width:1500px;
+margin:auto;
+}
+/* typography */
+h1{font-size:42px;}
+h2{font-size:30px;}
+h3{font-size:22px;}
+p{
+font-size:18px;
+line-height:1.7;
+}
+/* card */
+.card{
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 4px 15px rgba(0,0,0,0.06);
+}
+/* buttons */
+.btn{
+padding:14px 28px;
+font-size:18px;
+border:none;
+border-radius:8px;
+background:#0077cc;
+color:white;
+cursor:pointer;
+transition:0.2s;
+}
+.btn:hover{
+background:#005fa3;
+}
+@media (max-width:700px){
+.sidebar{
+width:70px;
+}
+.sidebar a{
+font-size:12px;
+}
+.content{
+margin-left:70px;
+}
+}
+@media (max-width:768px){
+
+.mobile-menu-btn{
+display:block;
+position:fixed;
+top:15px;
+left:15px;
+z-index:1001;
+}
+
+.sidebar{
+position:fixed;
+left:-250px;
+top:0;
+height:100%;
+width:230px;
+background:white;
+transition:0.3s;
+z-index:1000;
+}
+
+.sidebar.show{
+left:0;
+}
+
+}
+@media (max-width:768px){
+.feature-title{
+font-size:22px;
+}
+.feature-text{
+font-size:16px;
+}
+.page-title{
+font-size:24px;
+}
+.hero h1{
+font-size:26px;
+}
+.section-card h2{
+font-size:20px;
+}
+}
+@media (max-width:768px){
+.card-grid{
+grid-template-columns:1fr;
+}
+}
+
+.mobile-menu-btn{
+display:none;
+font-size:28px;
+cursor:pointer;
+padding:10px;
+}
+
+/* mobile */
+@media (max-width:768px){
+.mobile-menu-btn{
+display:block;
+position:fixed;
+top:15px;
+left:15px;
+z-index:1001;
+}
+.sidebar{
+position:fixed;
+left:-250px;
+top:0;
+height:100%;
+width:230px;
+background:white;
+transition:0.3s;
+z-index:1000;
+}
+.sidebar.show{
+left:0;
+}
+}
+.sidebar{
+background:white;
+box-shadow:4px 0 20px rgba(0,0,0,0.1);
+}
+.sidebar{
+overflow-y:auto;
+}
+.close-btn{
+font-size:26px;
+cursor:pointer;
+margin-bottom:20px;
+color:#333;
+}
+.close-btn{
+display:none;
+}
+
+@media (max-width:768px){
+.close-btn{
+display:block;
+font-size:28px;
+cursor:pointer;
+margin-bottom:20px;
+}
+}
+@media (max-width:768px){
+
+.sidebar a{
+font-size:20px;
+padding:14px 12px;
+}
+
+.sidebar h2{
+font-size:26px;
+}
+
+}
+
+.sidebar{
+z-index:2000;
+}
+
+.leaflet-control-attribution{
+z-index:1 !important;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="mobile-menu-btn" onclick="toggleSidebar()">☰</div>
+
+<!-- Sidebar -->
+
+<div class="sidebar">
+<div class="close-btn" onclick="toggleSidebar()">✕</div>
+<h2>Firefly Detection</h2>
+
+{% if session.get("user") %}
+
+<a href="/dashboard">Home</a>
+<a href="/upload">Upload</a>
+<a href="/activity">Activity</a>
+<a href="/learning">Learning</a>
+<a href="/map">Map</a>
+<a href="/schedule">Schedule</a>
+<a href="/logout">Logout</a>
+
+{% else %}
+
+<a href="/">Home</a>
+<a href="/login">Login</a>
+<a href="/signup">Sign Up</a>
+
+{% endif %}
+
+</div>
+
+
+<!-- Main content -->
+
+<div class="main">
+
+<div class="container">
+
+{% block content %}
+{% endblock %}
+
+</div>
+
+</div>
+<script>
+function toggleSidebar(){
+let sidebar = document.querySelector(".sidebar");
+let button = document.querySelector(".mobile-menu-btn");
+sidebar.classList.toggle("show");
+if(sidebar.classList.contains("show")){
+button.style.display = "none";
+}else{
+button.style.display = "block";
+}
+}
+</script>
+</body>
+</html>
